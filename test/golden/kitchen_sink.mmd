@@ -1,0 +1,39 @@
+flowchart TB
+  subgraph g0["architecture :modular_monolith, components: {…}, allow: {…}, public: {…}"]
+    c0["<b>billing</b><br/><small>in: packs/billing/**/*.rb</small><br/>uses only: shared<br/>public API: packs/billing/app/public/**/*.rb; constants Billing::Api; namespace Billing::Public"]
+    c1["<b>catalog</b><br/><small>in: packs/catalog/**/*.rb</small><br/>uses only: shared"]
+    c2["<b>shared</b><br/><small>in: packs/shared/**/*.rb</small><br/>uses no other component<br/>used only by: billing, catalog, services"]
+    n_g0["<b>project-wide</b><br/>no cycles among: billing, catalog, shared"]:::note
+  end
+  c3["<b>my-engine</b><br/><small>in: engines/my-engine/**/*.rb</small>"]
+  c4["<b>controllers</b><br/><small>in: app/controllers/**/*.rb</small><br/>uses only: models, services<br/><i>because controllers orchestrate, they do not reach into packs</i>"]
+  c5["<b>models</b><br/><small>in: app/models/**/*.rb</small><br/><small>except: app/models/legacy/**/*.rb</small><br/>cannot call find_by_sql on ActiveRecord::Base or its subclasses<br/>instance methods matching /\Awith_(?#lt;base#gt;.+)/: require without_%{base}<br/>class methods matching /\Aget_/: forbidden, except get_started"]
+  c6["<b>services</b><br/><small>in: app/services/**/*.rb</small><br/>cannot call render, redirect_to, params, session<br/><i>because services do not own the HTTP response</i><br/>cannot call puts (bare calls only)<br/>cannot do Thing.new(...).call"]
+  c7["<b>records</b><br/><small>descendants of: ApplicationRecord</small><br/>cannot define call"]
+  c8["<b>commands</b><br/><small>namespace: Commands</small><br/>must implement #35;call (arity 1, keywords: actor)<br/>must implement one of .perform, .call"]
+  c9["<b>model_concerns</b><br/><small>in: app/models/concerns/**/*.rb</small><br/>cannot reference its includers"]
+  c10["<b>end</b><br/><small>in: app/end/**/*.rb</small><br/>must be empty<br/><i>because retired; see #96;docs/end.md#96; and never use #96;#96;#96;fences#96;#96;#96;</i>"]:::empty
+  c11["<b>legacy</b><br/><small>constants: OldReport, OldExport</small><br/>instance methods matching /\Aold_(?#lt;x#gt;.+)/: require new_%{x} on models (class side)"]
+  c12["<b>ghost</b>"]:::undeclared
+  n_top["<b>project rules</b><br/>no cycles among: controllers, models, services"]:::note
+  subgraph g1["preset :ruby_conventions"]
+    n_g1["<b>project-wide</b><br/>instance methods matching /\A(get|set)_/: forbidden<br/><i>because use attr_ readers and writers or plain names, not get_/set_</i><br/>instance methods matching /\Ais_/: forbidden<br/><i>because name predicates with a trailing ? and no is_ prefix (has_ is fine)</i><br/>class methods matching /\A(get|set)_/: forbidden<br/><i>because use attr_ readers and writers or plain names, not get_/set_</i><br/>class methods matching /\Ais_/: forbidden<br/><i>because name predicates with a trailing ? and no is_ prefix (has_ is fine)</i>"]:::note
+  end
+  k0{{"ActionController"}}:::constant
+  k1{{"ActionView"}}:::constant
+  c0 -->|"only consumer"| c2
+  c1 -->|"only consumer"| c2
+  c4 --> c5
+  c4 --> c6
+  c5 -.-x|"cannot use: models must not know about #96;HTTP#96;"| c4
+  c5 -.-x|"cannot reference"| k0
+  c5 -.-x|"cannot reference"| k1
+  c6 ==>|"only consumer"| c2
+  c11 -.-x|"cannot use"| c12
+  linkStyle 0,1,2,3 stroke:#2f9e44,stroke-width:2px
+  linkStyle 4,5,6,8 stroke:#e03131,stroke-width:1.5px,stroke-dasharray:5 4
+  linkStyle 7 stroke:#1971c2,stroke-width:2px
+  classDef note fill:none,stroke-dasharray:2 2
+  classDef empty stroke-dasharray:4 3,opacity:0.6
+  classDef undeclared stroke-dasharray:2 2,fill:none
+  classDef constant fill:none,stroke:#e03131,color:#e03131

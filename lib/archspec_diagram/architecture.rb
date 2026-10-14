@@ -79,7 +79,7 @@ module ArchspecDiagram
     end
 
     def self.read(file, path)
-      File.read(file)
+      File.read(file, encoding: "UTF-8")
     rescue SystemCallError => e
       raise Error, "could not load #{path}: #{SystemCallError.new(e.errno).message}"
     end

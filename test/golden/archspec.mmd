@@ -1,0 +1,29 @@
+flowchart TB
+  c0["<b>library</b><br/><small>in: lib/**/*.rb</small><br/>cannot call call<br/>cannot define call<br/>cannot do Thing.new(...).call"]
+  c1["<b>public_api</b><br/><small>in: lib/archspec.rb</small>"]
+  c2["<b>cli</b><br/><small>in: lib/archspec/cli.rb</small>"]
+  c3["<b>analysis</b><br/><small>in: lib/archspec/analyzer.rb, lib/archspec/concern_semantics.rb, lib/archspec/rails_reflector.rb, lib/archspec/evaluator.rb</small>"]
+  c4["<b>domain</b><br/><small>in: lib/archspec/todo.rb, lib/archspec/facts.rb, lib/archspec/component_spec.rb, lib/archspec/definition.rb, lib/archspec/diagnostic.rb, lib/archspec/model.rb, lib/archspec/source_location.rb</small>"]
+  c5["<b>dsl</b><br/><small>in: lib/archspec/architectures.rb, lib/archspec/dsl.rb</small>"]
+  c6["<b>rule_checks</b><br/><small>in: lib/archspec/rules/**/*.rb</small>"]
+  c7["<b>formatters</b><br/><small>in: lib/archspec/formatters/**/*.rb</small>"]
+  c8["<b>support</b><br/><small>in: lib/archspec/error.rb, lib/archspec/version.rb</small>"]
+  n_top["<b>project rules</b><br/>no cycles among: public_api, cli, analysis, domain, dsl, rule_checks, formatters, support"]:::note
+  c4 -.-x|"cannot use"| c3
+  c4 -.-x|"cannot use"| c2
+  c4 -.-x|"cannot use"| c5
+  c4 -.-x|"cannot use"| c7
+  c4 -.-x|"cannot use"| c6
+  c6 -.-x|"cannot use"| c3
+  c6 -.-x|"cannot use"| c2
+  c6 -.-x|"cannot use"| c5
+  c6 -.-x|"cannot use"| c7
+  c7 -.-x|"cannot use"| c3
+  c7 -.-x|"cannot use"| c2
+  c7 -.-x|"cannot use"| c5
+  c7 -.-x|"cannot use"| c6
+  c5 -.-x|"cannot use"| c3
+  c5 -.-x|"cannot use"| c2
+  c5 -.-x|"cannot use"| c7
+  linkStyle 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15 stroke:#e03131,stroke-width:1.5px,stroke-dasharray:5 4
+  classDef note fill:none,stroke-dasharray:2 2

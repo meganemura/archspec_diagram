@@ -1,0 +1,18 @@
+flowchart TB
+  subgraph g0["architecture :rails, controller_api: […], share_helpers: true"]
+    c0["<b>controllers</b><br/><small>in: app/controllers/**/*.rb</small><br/>uses only: models, helpers, mailers, jobs, services"]
+    c1["<b>models</b><br/><small>in: app/models/**/*.rb</small><br/>cannot call render, redirect_to, session, cookies, flash (bare calls only)"]
+    c2["<b>helpers</b><br/><small>in: app/helpers/**/*.rb</small>"]
+    c3["<b>mailers</b><br/><small>in: app/mailers/**/*.rb</small>"]
+    c4["<b>jobs</b><br/><small>in: app/jobs/**/*.rb</small>"]
+    c5["<b>services</b><br/><small>in: app/services/**/*.rb</small><br/>cannot call render, redirect_to, session, cookies, flash (bare calls only)"]
+  end
+  c0 --> c1
+  c0 --> c2
+  c0 --> c3
+  c0 --> c4
+  c0 --> c5
+  c1 -.-x|"cannot use"| c0
+  c5 -.-x|"cannot use"| c0
+  linkStyle 0,1,2,3,4 stroke:#2f9e44,stroke-width:2px
+  linkStyle 5,6 stroke:#e03131,stroke-width:1.5px,stroke-dasharray:5 4
