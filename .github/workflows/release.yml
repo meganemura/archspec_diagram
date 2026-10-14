@@ -1,0 +1,114 @@
+name: Release
+
+# GitHub does not start workflows from a push made with the workflow's own
+# token, so a merge that changes the version starts the release and the tag is
+# created last, after the gem is out.
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - lib/archspec_diagram/version.rb
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  check:
+    name: Find a gem version with no tag
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      tag: ${{ steps.version.outputs.tag }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - id: version
+        run: |
+          version=$(ruby -e 'puts File.read("lib/archspec_diagram/version.rb").slice(/VERSION\s*=\s*"([^"]+)"/, 1)')
+          tag="v$version"
+          if git ls-remote --exit-code --tags origin "refs/tags/$tag" >/dev/null; then
+            echo "$tag already exists, so this push releases nothing"
+          else
+            echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          fi
+
+  # The release environment's approval is the last gate, and only this job
+  # holds the RubyGems OIDC token.
+  publish:
+    name: Publish the gem
+    needs: check
+    if: needs.check.outputs.tag != ''
+    runs-on: ubuntu-latest
+    environment: release
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ruby/setup-ruby@95ef2b042f9d7a56d8268cba8559e2842e2ad01b # v1.321.0
+        with:
+          ruby-version: "3.4"
+          bundler-cache: true
+      - run: bundle exec rake
+      - name: Build the gem
+        env:
+          TAG: ${{ needs.check.outputs.tag }}
+        run: |
+          gem build archspec_diagram.gemspec
+          test -f "archspec_diagram-${TAG#v}.gem"
+      - uses: rubygems/configure-rubygems-credentials@dc5a8d8553e6ee01fc26761a49e99e733d17954a # v2.1.0
+      # A rerun after a successful push gets "Repushing of gem versions is not
+      # allowed"; that is the only failure worth skipping.
+      - name: Push the gem to RubyGems
+        env:
+          TAG: ${{ needs.check.outputs.tag }}
+        run: |
+          if output=$(gem push "archspec_diagram-${TAG#v}.gem" 2>&1); then
+            echo "$output"
+          elif echo "$output" | grep -q "Repushing of gem versions is not allowed"; then
+            echo "$output"
+          else
+            echo "$output"
+            exit 1
+          fi
+
+  release:
+    name: Create the tag and the GitHub release
+    needs: [check, publish]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Write the release notes from this version's changelog section
+        env:
+          TAG: ${{ needs.check.outputs.tag }}
+        run: |
+          awk -v v="${TAG#v}" 'index($0, "## [" v "]") == 1 {in_version=1; next} /^## /{in_version=0} in_version' CHANGELOG.md > notes.md
+          if ! grep -q '[^[:space:]]' notes.md; then
+            echo "CHANGELOG.md has no section for ${TAG#v}" >&2
+            exit 1
+          fi
+      # A rerun finds the release already created, so it updates it instead.
+      - name: Create the tag and the GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ needs.check.outputs.tag }}
+        run: |
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release edit "$TAG" --notes-file notes.md
+          else
+            gh release create "$TAG" --target "$GITHUB_SHA" --title "$TAG" --notes-file notes.md
+          fi
