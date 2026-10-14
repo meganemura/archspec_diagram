@@ -7,6 +7,7 @@ module DiagramHelpers
   Clauses = ArchspecDiagram.const_get(:Clauses)
   Flowchart = ArchspecDiagram.const_get(:Flowchart)
   Options = ArchspecDiagram.const_get(:Options)
+  Document = ArchspecDiagram.const_get(:Document)
 
   FIXTURES = File.expand_path("fixtures", __dir__)
 
@@ -16,6 +17,10 @@ module DiagramHelpers
       File.write(path, source)
       yield path
     end
+  end
+
+  def render_source(source, **options)
+    with_config(source) { |path| ArchspecDiagram.render(path, **options) }
   end
 
   def load_architecture(source)

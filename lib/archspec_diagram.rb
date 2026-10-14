@@ -7,13 +7,9 @@ require_relative "archspec_diagram/version"
 module ArchspecDiagram
   Error = Class.new(ArchSpec::Error)
 
-  # The one validated bag of rendering choices. The CLI and library callers
-  # both construct it through render, so option rules live here only.
   class Options < Data.define(:format, :direction, :detail, :focus)
     FORMATS = %i[mermaid markdown html].freeze
     DIRECTIONS = %i[TB BT LR RL].freeze
-    # names: components and arrows. rules: plus selectors and rule lines.
-    # reasons: plus every because: text.
     DETAILS = %i[names rules reasons].freeze
 
     def initialize(format: :mermaid, direction: :TB, detail: :rules, focus: nil)
@@ -43,12 +39,10 @@ module ArchspecDiagram
   # for every user-caused failure: bad options, unreadable or broken config,
   # unknown focus component.
   def self.render(path = "Archspec.rb", **options)
-    raise NotImplementedError
-    # TODO:
-    #   opts = Options.new(**options)            # fail before evaluating user code
-    #   architecture = Architecture.load(path)
-    #   architecture = architecture.focus(opts.focus) if opts.focus
-    #   Document.new(Flowchart.new(architecture, opts), opts, title: architecture.title).to_s
+    opts = Options.new(**options)
+    architecture = Architecture.load(path)
+    architecture = architecture.focus(opts.focus) if opts.focus
+    Document.new(Flowchart.new(architecture, opts), opts, title: architecture.title).to_s
   end
 end
 

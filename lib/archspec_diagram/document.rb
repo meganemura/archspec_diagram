@@ -1,9 +1,6 @@
 require "cgi"
 
 module ArchspecDiagram
-  # Wraps a flowchart for its destination. mermaid: the bare diagram, for
-  # pasting into GitHub, Notion, or mmdc. markdown: a fenced block plus a
-  # legend table. html: a standalone page that renders in a browser.
   class Document
     MERMAID_JS = "https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.esm.min.mjs"
 
@@ -14,18 +11,59 @@ module ArchspecDiagram
     end
 
     def to_s
-      raise NotImplementedError
-      # TODO: case @options.format
-      #   :mermaid  -> diagram + "\n"
-      #   :markdown -> "## #{title} architecture", fence + "mermaid", diagram, fence,
-      #                then a two-column legend table from Flowchart.legend
-      #                (only kinds present, if Flowchart exposes them).
-      #     fence = "`" * [3, longest backtick run in diagram + 1].max, so the
-      #     fence holds even if escaping ever regresses.
-      #   :html     -> <!doctype html> page; CGI.escapeHTML on the title and on
-      #                the diagram inside <pre class="mermaid"> (mermaid reads
-      #                textContent, so escaped tags come back as tags); legend
-      #                as an HTML list; module script imports MERMAID_JS.
+      case @options.format
+      when :mermaid then "#{diagram}\n"
+      when :markdown then markdown
+      when :html then html
+      end
     end
+
+    private
+
+    def diagram = @flowchart.to_s
+
+    def markdown
+      fence = "`" * [3, longest_backtick_run + 1].max
+      lines = ["## #{@title.gsub(/\R/, ' ')} architecture", "", "#{fence}mermaid", diagram, fence]
+      unless legend.empty?
+        lines.push("", "| Arrow | Meaning |", "| --- | --- |")
+        lines.concat(legend.map { |look, meaning| "| #{look} | #{meaning} |" })
+      end
+      "#{lines.join("\n")}\n"
+    end
+
+    # Mermaid reads the element's textContent, so escaped tags come back as tags.
+    def html
+      items = legend.map { |look, meaning| "      <li><strong>#{CGI.escapeHTML(look)}</strong>: #{CGI.escapeHTML(meaning)}</li>" }
+      <<~HTML
+        <!doctype html>
+        <html lang="en">
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1">
+          <title>#{CGI.escapeHTML(@title)} architecture</title>
+          <style>
+            body { font-family: system-ui, sans-serif; margin: 2rem; }
+            ul { line-height: 1.6; }
+          </style>
+        </head>
+        <body>
+          <h1>#{CGI.escapeHTML(@title)} architecture</h1>
+          <pre class="mermaid">
+        #{CGI.escapeHTML(diagram)}
+          </pre>
+        #{items.empty? ? '' : "  <ul>\n#{items.join("\n")}\n  </ul>\n"}  <script type="module">
+            import mermaid from "#{MERMAID_JS}";
+            mermaid.initialize({ startOnLoad: false });
+            await mermaid.run();
+          </script>
+        </body>
+        </html>
+      HTML
+    end
+
+    def legend = @legend ||= @flowchart.legend
+
+    def longest_backtick_run = diagram.scan(/`+/).map(&:length).max || 0
   end
 end

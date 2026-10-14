@@ -44,7 +44,7 @@ module ArchspecDiagram
         [name, Component.new(name:, selectors: selector_lines(spec), origin: ledger.component_origin(name), declared: true)]
       end
       add_undeclared(components, clauses)
-      new(title: File.basename(File.dirname(file)), components:, clauses:)
+      new(title: File.basename(File.dirname(File.expand_path(file))), components:, clauses:)
     end
 
     def focus(name)
