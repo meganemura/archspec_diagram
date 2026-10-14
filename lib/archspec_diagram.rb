@@ -17,16 +17,25 @@ module ArchspecDiagram
     DETAILS = %i[names rules reasons].freeze
 
     def initialize(format: :mermaid, direction: :TB, detail: :rules, focus: nil)
-      raise NotImplementedError
-      # TODO: coerce each to Symbol (CLI passes strings), then
-      #   raise Error, "unknown format: html5 (expected mermaid, markdown or html)"
-      #   unless FORMATS.include?(format); same shape for direction and detail.
-      #   focus stays nil or becomes a Symbol; whether it names a component is
-      #   only knowable after loading, so render checks it.
-      #   super(format:, direction:, detail:, focus:)
+      super(
+        format: choose("format", format, FORMATS),
+        direction: choose("direction", direction, DIRECTIONS),
+        detail: choose("detail", detail, DETAILS),
+        focus: focus&.to_sym
+      )
     end
 
     def detail_at_least?(level) = DETAILS.index(detail) >= DETAILS.index(level)
+
+    private
+
+    def choose(label, value, allowed)
+      choice = allowed.find { _1.to_s.casecmp?(value.to_s) }
+      return choice if choice
+
+      expected = allowed.map(&:to_s)
+      raise Error, "unknown #{label}: #{value} (expected #{expected[..-2].join(', ')} or #{expected.last})"
+    end
   end
 
   # Reads the Archspec.rb at +path+ (or +path+/Archspec.rb for a directory)
