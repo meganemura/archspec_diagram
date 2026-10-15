@@ -64,11 +64,14 @@ class PropertyTest < Minitest::Test
 
   private
 
+  # Rules go through the proxy `component` returns, kept in a local, not
+  # through the component's name: a name such as "then" calls Kernel#then
+  # instead of reaching archspec's method_missing.
   def config_for(names, pairs)
-    lines = names.each_with_index.map { |name, index| "component #{name.to_sym.inspect}, in: \"c#{index}/**/*.rb\"" }
+    lines = names.each_with_index.map { |name, index| "c#{index} = component #{name.to_sym.inspect}, in: \"c#{index}/**/*.rb\"" }
     pairs.group_by(&:first).each do |from, group|
       targets = group.map { names.fetch(_2).to_sym.inspect }.join(", ")
-      lines << "public_send(#{names.fetch(from).to_sym.inspect}).cannot_use #{targets}"
+      lines << "c#{from}.cannot_use #{targets}"
     end
     lines.join("\n")
   end
