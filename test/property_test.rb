@@ -18,9 +18,17 @@ class PropertyTest < Minitest::Test
     skip "hegeltest needs Ruby 3.4 or later" unless defined?(Hegel)
   end
 
+  # Keyed by the test name, so a local rerun of a failed test (the command
+  # bulldogger prints) replays the stored counterexample first instead of
+  # searching again. On CI the engine's ci profile leaves the database off and
+  # derandomizes the run, so a rerun there reaches the same case anyway.
+  def property(&)
+    Hegel.test(database_key: name, &)
+  end
+
   def test_label_text_carries_no_mermaid_syntax_and_unescapes_to_its_input
     escape = Flowchart.allocate.method(:text)
-    Hegel.test do |tc|
+    property do |tc|
       input = tc.draw(text(max_size: 20))
       escaped = escape.call(input)
 
@@ -30,7 +38,7 @@ class PropertyTest < Minitest::Test
   end
 
   def test_every_component_is_one_node_and_every_edge_joins_two_nodes
-    Hegel.test do |tc|
+    property do |tc|
       names = tc.draw(arrays(text(min_size: 1, max_size: 6), min_size: 1, max_size: 5)).uniq
       pairs = tc.draw(arrays(tuples(integers(min_value: 0, max_value: names.size - 1),
                                     integers(min_value: 0, max_value: names.size - 1)), max_size: 6))
