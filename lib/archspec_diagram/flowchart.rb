@@ -145,7 +145,7 @@ module ArchspecDiagram
     # #quot; #35; #96;, and line breaks become a space. Backticks matter
     # because a leading one turns the label into a Mermaid markdown string.
     def text(string)
-      string.to_s.gsub(/\R/, " ").gsub(/[&<>"#`]/) { "##{ESCAPES.fetch(_1)};" }
+      string.to_s.gsub(/\R/, " ").gsub(/[&<>"#]/) { "##{ESCAPES.fetch(_1)};" }
     end
 
     ESCAPES = { "&" => "amp", "<" => "lt", ">" => "gt", '"' => "quot", "#" => "35", "`" => "96" }.freeze
