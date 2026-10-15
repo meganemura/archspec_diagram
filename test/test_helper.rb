@@ -1,4 +1,12 @@
 require "minitest/autorun"
+# bulldogger writes each failure, with the values in its frames, to
+# tmp/bulldogger/ and prints the path and a rerun command. It needs Ruby 4.0,
+# so the Gemfile installs it only there.
+begin
+  require "bulldogger/minitest"
+rescue LoadError
+  nil
+end
 require "tmpdir"
 require_relative "../lib/archspec_diagram"
 

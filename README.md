@@ -120,6 +120,8 @@ MMDC=path/to/mmdc ruby -Itest test/render_test.rb   # also checks the golden dia
 UPDATE_GOLDEN=1 ruby -Itest test/render_test.rb     # rewrite test/golden after an intended change
 ```
 
+`test/property_test.rb` states two properties with [hegeltest](https://github.com/meganemura/hegel-ruby): label text carries no Mermaid syntax and unescapes to its input, and every component is one node and every edge joins two nodes. hegeltest needs Ruby 3.4 or later, so these tests skip on an older Ruby. On Ruby 4.0 the suite also loads [bulldogger](https://github.com/meganemura/bulldogger), which writes each failure with its frame values to `tmp/bulldogger/` and prints the evidence path and a rerun command.
+
 The golden diagrams in `test/golden` come from the Archspec.rb files of archspec itself, fizzy, mastodon, discourse and the rails_app fixture (vendored under `test/fixtures/upstream`), plus the kitchen sink.
 
 ## License
