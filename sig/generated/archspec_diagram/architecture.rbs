@@ -1,0 +1,166 @@
+# Generated from lib/archspec_diagram/architecture.rb with RBS::Inline
+
+module ArchspecDiagram
+  class Architecture < Data
+    attr_reader title(): String
+
+    attr_reader components(): Hash[Symbol, Architecture::Component]
+
+    attr_reader clauses(): Array[Architecture::Clause]
+
+    def self.new: (String title, Hash[Symbol, Architecture::Component] components, Array[Architecture::Clause] clauses) -> instance
+                | (title: String, components: Hash[Symbol, Architecture::Component], clauses: Array[Architecture::Clause]) -> instance
+
+    def self.members: () -> [ :title, :components, :clauses ]
+
+    def members: () -> [ :title, :components, :clauses ]
+  end
+
+  class Architecture
+    class Origin < Data
+      attr_reader seq(): Integer
+
+      attr_reader verb(): Symbol
+
+      attr_reader preset(): Symbol
+
+      attr_reader options(): Hash[Symbol, untyped]
+
+      def self.new: (Integer seq, Symbol verb, Symbol preset, Hash[Symbol, untyped] options) -> instance
+                  | (seq: Integer, verb: Symbol, preset: Symbol, options: Hash[Symbol, untyped]) -> instance
+
+      def self.members: () -> [ :seq, :verb, :preset, :options ]
+
+      def members: () -> [ :seq, :verb, :preset, :options ]
+    end
+
+    class Origin
+      # : () -> String
+      def label: () -> String
+
+      private
+
+      # : (untyped value) -> String
+      def brief: (untyped value) -> String
+    end
+
+    class Component < Data
+      attr_reader name(): Symbol
+
+      attr_reader selectors(): Array[String]
+
+      attr_reader origin(): Origin?
+
+      attr_reader declared(): bool
+
+      def self.new: (Symbol name, Array[String] selectors, Origin? origin, bool declared) -> instance
+                  | (name: Symbol, selectors: Array[String], origin: Origin?, declared: bool) -> instance
+
+      def self.members: () -> [ :name, :selectors, :origin, :declared ]
+
+      def members: () -> [ :name, :selectors, :origin, :declared ]
+    end
+
+    class Constant < Data
+      attr_reader name(): String
+
+      def self.new: (String name) -> instance
+                  | (name: String) -> instance
+
+      def self.members: () -> [ :name ]
+
+      def members: () -> [ :name ]
+    end
+
+    class Link < Data
+      attr_reader from(): Symbol
+
+      attr_reader to(): Symbol | Constant
+
+      attr_reader kind(): Symbol
+
+      def self.new: (Symbol from, Symbol | Constant to, Symbol kind) -> instance
+                  | (from: Symbol, to: Symbol | Constant, kind: Symbol) -> instance
+
+      def self.members: () -> [ :from, :to, :kind ]
+
+      def members: () -> [ :from, :to, :kind ]
+    end
+
+    class Clause < Data
+      attr_reader subject(): Symbol?
+
+      attr_reader summary(): String?
+
+      attr_reader links(): Array[Link]
+
+      attr_reader reason(): String?
+
+      attr_reader origin(): Origin?
+
+      attr_reader empty(): bool
+
+      def self.new: (Symbol? subject, String? summary, Array[Link] links, String? reason, Origin? origin, bool empty) -> instance
+                  | (subject: Symbol?, summary: String?, links: Array[Link], reason: String?, origin: Origin?, empty: bool) -> instance
+
+      def self.members: () -> [ :subject, :summary, :links, :reason, :origin, :empty ]
+
+      def members: () -> [ :subject, :summary, :links, :reason, :origin, :empty ]
+    end
+
+    class Clause
+      # : () -> bool
+      def project_wide?: () -> bool
+
+      # : () -> bool
+      def drawn_as_links_only?: () -> bool
+    end
+
+    # : (String | Pathname path) -> Architecture
+    def self.load: (String | Pathname path) -> Architecture
+
+    # : (String | Symbol name) -> Architecture
+    def focus: (String | Symbol name) -> Architecture
+
+    # : (String | Pathname path) -> String
+    def self.resolve: (String | Pathname path) -> String
+
+    # : (String file, String | Pathname path) -> String
+    def self.read: (String file, String | Pathname path) -> String
+
+    # : (ArchSpec::Definition definition, String source, String file, String | Pathname path) -> void
+    def self.evaluate: (ArchSpec::Definition definition, String source, String file, String | Pathname path) -> void
+
+    # : (Hash[Symbol, Component] components, Array[Clause] clauses) -> void
+    def self.add_undeclared: (Hash[Symbol, Component] components, Array[Clause] clauses) -> void
+
+    # : (ArchSpec::ComponentSpec spec) -> Array[String]
+    def self.selector_lines: (ArchSpec::ComponentSpec spec) -> Array[String]
+
+    class Ledger
+      # : () -> void
+      def initialize: () -> void
+
+      # Both entry points need wrapping: Context aliases preset to the
+      # original architecture body, so overriding architecture alone misses
+      # `preset :ruby_conventions`.
+      # : () -> Module
+      def tracking: () -> Module
+
+      # : [T] (Symbol verb, String | Symbol name, Hash[Symbol, untyped] options) { () -> T } -> T
+      def within: [T] (Symbol verb, String | Symbol name, Hash[Symbol, untyped] options) { () -> T } -> T
+
+      # : (untyped rule) -> Origin?
+      def claim_rule: (untyped rule) -> Origin?
+
+      # : (Symbol name) -> (bool | Origin | nil)
+      def claim_component: (Symbol name) -> (bool | Origin | nil)
+
+      # : (untyped rule) -> Origin?
+      def rule_origin: (untyped rule) -> Origin?
+
+      # : (Symbol name) -> Origin?
+      def component_origin: (Symbol name) -> Origin?
+    end
+  end
+end

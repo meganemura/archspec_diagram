@@ -1,0 +1,58 @@
+# Generated from lib/archspec_diagram.rb with RBS::Inline
+
+# The whole public surface: ArchspecDiagram.render, ArchspecDiagram::Error,
+# and ArchspecDiagram::CLI for the executable. Everything else is a private
+# constant, so callers cannot couple to the model or the Mermaid writer.
+module ArchspecDiagram
+  class Error < ArchSpec::Error
+  end
+
+  class Options < Data
+    attr_reader format(): Symbol
+
+    attr_reader direction(): Symbol
+
+    attr_reader detail(): Symbol
+
+    attr_reader focus(): Symbol?
+
+    def self.new: (Symbol format, Symbol direction, Symbol detail, Symbol? focus) -> instance
+                | (format: Symbol, direction: Symbol, detail: Symbol, focus: Symbol?) -> instance
+
+    def self.members: () -> [ :format, :direction, :detail, :focus ]
+
+    def members: () -> [ :format, :direction, :detail, :focus ]
+  end
+
+  class Options
+    def self.new: (?format: String | Symbol, ?direction: String | Symbol, ?detail: String | Symbol, ?focus: String | Symbol | nil) -> instance
+                | ...
+
+    FORMATS: Array[Symbol]
+
+    DIRECTIONS: Array[Symbol]
+
+    DETAILS: Array[Symbol]
+
+    # : (?format: String | Symbol, ?direction: String | Symbol, ?detail: String | Symbol, ?focus: String | Symbol | nil) -> void
+    def initialize: (?format: String | Symbol, ?direction: String | Symbol, ?detail: String | Symbol, ?focus: String | Symbol | nil) -> void
+
+    # : (Symbol level) -> bool
+    def detail_at_least?: (Symbol level) -> bool
+
+    private
+
+    # : (String label, String | Symbol value, Array[Symbol] allowed) -> Symbol
+    def choose: (String label, String | Symbol value, Array[Symbol] allowed) -> Symbol
+  end
+
+  # Reads the Archspec.rb at +path+ (or +path+/Archspec.rb for a directory)
+  # and returns the diagram as a String. Raises Error with a one-line message
+  # for every user-caused failure: bad options, unreadable or broken config,
+  # unknown focus component.
+  # : (?String path, **untyped options) -> String
+  def self.render: (?String path, **untyped options) -> String
+end
+
+module ArchspecDiagram
+end

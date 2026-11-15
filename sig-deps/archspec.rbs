@@ -1,0 +1,47 @@
+# The parts of archspec that lib/ calls. archspec ships no signatures; this
+# file is for Steep only, and the gem does not ship it.
+module ArchSpec
+  class Error < StandardError
+  end
+
+  class Definition
+    attr_accessor base_dir: String
+    def rules: () -> Array[untyped]
+    def component_specs: () -> Hash[Symbol, ComponentSpec]
+  end
+
+  class ComponentSpec
+    def file_patterns: () -> Array[String]
+    def exclude_patterns: () -> Array[String]
+    def namespaces: () -> Array[String]
+    def constants: () -> Array[String]
+    def ancestor_names: () -> Array[String]
+  end
+
+  module DSL
+    module Context
+    end
+  end
+
+  module Rules
+    class AllowDependenciesRule end
+    class ForbidDependenciesRule end
+    class AllowedConsumersRule end
+    class CannotReferenceConstantsRule end
+    class NoCyclesRule end
+    class MustBeEmptyRule end
+    class ConcernIndependenceRule end
+    class PublicApiRule end
+    class CannotCallRule end
+    class MustImplementRule end
+    class MustImplementOneOfRule end
+    class CannotDefineMethodRule end
+    class CannotInstantiateAndInvokeRule end
+    class NamingRule end
+
+    module Naming
+      class Forbidden end
+      class Requires end
+    end
+  end
+end

@@ -13,3 +13,12 @@ group :test do
     gem "debug", "1.11.1"
   end
 end
+
+# rbs-inline writes sig/generated from the type comments in lib/, and Steep
+# checks lib/ against it. Both run in CI on Ruby 3.4.
+group :types do
+  if RUBY_VERSION >= "3.4"
+    gem "rbs-inline", "0.14.0", require: false
+    gem "steep", "2.1.0", require: false
+  end
+end

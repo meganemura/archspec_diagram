@@ -1,0 +1,18 @@
+# Generated from lib/archspec_diagram/cli.rb with RBS::Inline
+
+module ArchspecDiagram
+  # usage: archspec_diagram [options] [PATH]
+  # PATH is an Archspec.rb or a directory holding one (default ./Archspec.rb).
+  # Exit 0 on success, 1 for a config or I/O problem, 2 for a usage error.
+  # Every failure prints one line to stderr and never a backtrace.
+  module CLI
+    # : (Array[String] argv, ?out: IO, ?err: IO) -> Integer
+    def self.start: (Array[String] argv, ?out: IO, ?err: IO) -> Integer
+
+    # : (IO err, String message) -> Integer
+    def self.usage_error: (IO err, String message) -> Integer
+
+    # : (String path, String content) -> void
+    def self.write_atomically: (String path, String content) -> void
+  end
+end

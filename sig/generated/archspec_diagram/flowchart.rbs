@@ -1,0 +1,76 @@
+# Generated from lib/archspec_diagram/flowchart.rb with RBS::Inline
+
+module ArchspecDiagram
+  class Flowchart
+    LINKS: Hash[Symbol, { arrow: String, label: String?, style: String, look: String, legend: String }]
+
+    CLASS_DEFS: Hash[Symbol, String]
+
+    type bucket = { components: Array[Architecture::Component], notes: Array[Architecture::Clause] }
+
+    class Edge < Data
+      attr_reader from(): Symbol
+
+      attr_reader to(): Symbol | Architecture::Constant
+
+      attr_reader kind(): Symbol
+
+      attr_reader label(): String?
+
+      def self.new: (Symbol from, Symbol | Architecture::Constant to, Symbol kind, String? label) -> instance
+                  | (from: Symbol, to: Symbol | Architecture::Constant, kind: Symbol, label: String?) -> instance
+
+      def self.members: () -> [ :from, :to, :kind, :label ]
+
+      def members: () -> [ :from, :to, :kind, :label ]
+    end
+
+    Constant: untyped
+
+    # : (Architecture architecture, Options options) -> void
+    def initialize: (Architecture architecture, Options options) -> void
+
+    # : () -> String
+    def to_s: () -> String
+
+    # : () -> Array[[String, String]]
+    def legend: () -> Array[[ String, String ]]
+
+    private
+
+    # : () -> Array[String]
+    def group_lines: () -> Array[String]
+
+    # : (Architecture::Component component) -> String
+    def node: (Architecture::Component component) -> String
+
+    # : (String? group, String title, Array[Architecture::Clause] clauses) -> String
+    def note_node: (String? group, String title, Array[Architecture::Clause] clauses) -> String
+
+    # : (Architecture::Clause clause) -> String?
+    def clause_line: (Architecture::Clause clause) -> String?
+
+    # : () -> Array[Edge]
+    def merged_edges: () -> Array[Edge]
+
+    # : (Hash[Symbol, Array[[Architecture::Link, String?]]] by_kind) -> Hash[Symbol, [Array[[Architecture::Link, String?]], String?]]
+    def fold_consumer_into_allow: (Hash[Symbol, Array[[ Architecture::Link, String? ]]] by_kind) -> Hash[Symbol, [ Array[[ Architecture::Link, String? ]], String? ]]
+
+    # : (Edge edge) -> String
+    def edge_line: (Edge edge) -> String
+
+    # : (Array[Edge] edges) -> Array[String]
+    def link_style_lines: (Array[Edge] edges) -> Array[String]
+
+    # : () -> Array[String]
+    def class_def_lines: () -> Array[String]
+
+    # Text inside ["…"] and edge labels: & < > " # ` become #amp; #lt; #gt;
+    # #quot; #35; #96;, and line breaks become a space. Backticks matter
+    # because a leading one turns the label into a Mermaid markdown string.
+    # : (untyped string) -> String
+    def text: (untyped string) -> String
+
+    ESCAPES: Hash[String, String]
+  end
+end
