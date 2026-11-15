@@ -1,0 +1,31 @@
+# Generated from lib/archspec_diagram/document.rb with RBS::Inline
+
+module ArchspecDiagram
+  class Document
+    MERMAID_JS: String
+
+    # : (Flowchart flowchart, Options options, title: String) -> void
+    def initialize: (Flowchart flowchart, Options options, title: String) -> void
+
+    # : () -> String
+    def to_s: () -> String
+
+    private
+
+    # : () -> String
+    def diagram: () -> String
+
+    # : () -> String
+    def markdown: () -> String
+
+    # Mermaid reads the element's textContent, so escaped tags come back as tags.
+    # : () -> String
+    def html: () -> String
+
+    # : () -> Array[[String, String]]
+    def legend: () -> Array[[ String, String ]]
+
+    # : () -> Integer
+    def longest_backtick_run: () -> Integer
+  end
+end

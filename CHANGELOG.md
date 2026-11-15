@@ -6,6 +6,7 @@
 - On Ruby 4.0 the test suite loads bulldogger, so a failure writes its evidence to `tmp/bulldogger/`.
 - Each property test stores its failing case under `.hegel/`, keyed by test name, so rerunning a failed test locally replays the same counterexample.
 - CI also runs on pushes to the `queue` branch.
+- The gem ships RBS signatures in `sig/generated/`, written by rbs-inline from the type comments in `lib/` and checked with Steep in CI.
 
 ## [0.1.0]
 

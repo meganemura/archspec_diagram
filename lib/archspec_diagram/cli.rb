@@ -1,3 +1,5 @@
+# rbs_inline: enabled
+
 require "optparse"
 
 module ArchspecDiagram
@@ -6,9 +8,10 @@ module ArchspecDiagram
   # Exit 0 on success, 1 for a config or I/O problem, 2 for a usage error.
   # Every failure prints one line to stderr and never a backtrace.
   module CLI
+    #: (Array[String] argv, ?out: IO, ?err: IO) -> Integer
     def self.start(argv, out: $stdout, err: $stderr)
-      options = {}
-      output = nil
+      options = {} #: Hash[Symbol, String]
+      output = nil #: String?
       parser = OptionParser.new do |o|
         o.banner = "usage: archspec_diagram [options] [PATH]"
         o.on("-f", "--format FORMAT", "mermaid (default), markdown, html") { options[:format] = _1 }
@@ -39,11 +42,13 @@ module ArchspecDiagram
       1
     end
 
+    #: (IO err, String message) -> Integer
     def self.usage_error(err, message)
       err.puts "archspec_diagram: #{message}"
       2
     end
 
+    #: (String path, String content) -> void
     def self.write_atomically(path, content)
       temp = "#{path}.tmp-#{Process.pid}"
       File.write(temp, content)

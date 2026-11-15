@@ -1,3 +1,5 @@
+# rbs_inline: enabled
+
 require "archspec"
 require_relative "archspec_diagram/version"
 
@@ -5,13 +7,25 @@ require_relative "archspec_diagram/version"
 # and ArchspecDiagram::CLI for the executable. Everything else is a private
 # constant, so callers cannot couple to the model or the Mermaid writer.
 module ArchspecDiagram
-  Error = Class.new(ArchSpec::Error)
+  class Error < ArchSpec::Error; end
 
-  class Options < Data.define(:format, :direction, :detail, :focus)
-    FORMATS = %i[mermaid markdown html].freeze
-    DIRECTIONS = %i[TB BT LR RL].freeze
-    DETAILS = %i[names rules reasons].freeze
+  Options = Data.define(
+    :format, #: Symbol
+    :direction, #: Symbol
+    :detail, #: Symbol
+    :focus #: Symbol?
+  )
 
+  class Options
+    # @rbs!
+    #   def self.new: (?format: String | Symbol, ?direction: String | Symbol, ?detail: String | Symbol, ?focus: String | Symbol | nil) -> instance
+    #               | ...
+
+    FORMATS = %i[mermaid markdown html].freeze #: Array[Symbol]
+    DIRECTIONS = %i[TB BT LR RL].freeze #: Array[Symbol]
+    DETAILS = %i[names rules reasons].freeze #: Array[Symbol]
+
+    #: (?format: String | Symbol, ?direction: String | Symbol, ?detail: String | Symbol, ?focus: String | Symbol | nil) -> void
     def initialize(format: :mermaid, direction: :TB, detail: :rules, focus: nil)
       super(
         format: choose("format", format, FORMATS),
@@ -21,16 +35,18 @@ module ArchspecDiagram
       )
     end
 
-    def detail_at_least?(level) = DETAILS.index(detail) >= DETAILS.index(level)
+    #: (Symbol level) -> bool
+    def detail_at_least?(level) = DETAILS.index(detail).to_i >= DETAILS.index(level).to_i
 
     private
 
+    #: (String label, String | Symbol value, Array[Symbol] allowed) -> Symbol
     def choose(label, value, allowed)
       choice = allowed.find { _1.to_s.casecmp?(value.to_s) }
       return choice if choice
 
       expected = allowed.map(&:to_s)
-      raise Error, "unknown #{label}: #{value} (expected #{expected[..-2].join(', ')} or #{expected.last})"
+      raise Error, "unknown #{label}: #{value} (expected #{expected.first(expected.size - 1).join(', ')} or #{expected.last})"
     end
   end
 
@@ -38,6 +54,7 @@ module ArchspecDiagram
   # and returns the diagram as a String. Raises Error with a one-line message
   # for every user-caused failure: bad options, unreadable or broken config,
   # unknown focus component.
+  #: (?String path, **untyped options) -> String
   def self.render(path = "Archspec.rb", **options)
     opts = Options.new(**options)
     architecture = Architecture.load(path)

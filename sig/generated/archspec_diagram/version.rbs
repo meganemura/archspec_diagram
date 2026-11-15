@@ -1,0 +1,5 @@
+# Generated from lib/archspec_diagram/version.rb with RBS::Inline
+
+module ArchspecDiagram
+  VERSION: String
+end

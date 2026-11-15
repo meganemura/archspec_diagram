@@ -1,3 +1,5 @@
+# rbs_inline: enabled
+
 module ArchspecDiagram
   module Clauses
     Link = Architecture::Link
@@ -50,7 +52,7 @@ module ArchspecDiagram
         { subject: rule.source, summary: "cannot call #{list(rule.method_names)}#{receiver}" }
       end,
       ArchSpec::Rules::MustImplementRule => lambda do |rule|
-        extras = []
+        extras = [] #: Array[String]
         extras << "arity #{rule.arity}" if rule.arity
         extras << "keywords: #{list(rule.keywords)}" unless rule.keywords.empty?
         summary = "must implement #{sigil(rule.scope)}#{rule.method_name}"
@@ -80,14 +82,17 @@ module ArchspecDiagram
           summary: "#{rule.scope} methods matching #{rule.selector.regex.inspect}: #{phrase}#{except}"
         }
       end
-    }.freeze
+    }.freeze #: Hash[Class, ^(untyped) -> Hash[Symbol, untyped]]
 
+    #: (untyped rule, origin: Architecture::Origin?) -> Architecture::Clause
     def self.decode(rule, origin:)
-      attrs = DECODERS.fetch(rule.class) { method(:custom) }.call(rule)
+      decoder = DECODERS[rule.class]
+      attrs = decoder ? decoder.call(rule) : custom(rule)
       reason = rule.respond_to?(:archspec_because) ? rule.archspec_because : nil
       Architecture::Clause.new(subject: nil, summary: nil, links: [], empty: false, **attrs, reason:, origin:)
     end
 
+    #: (untyped rule) -> Hash[Symbol, untyped]
     def self.custom(rule)
       {
         subject: (rule.source.to_sym if rule.respond_to?(:source) && rule.source),
@@ -95,7 +100,9 @@ module ArchspecDiagram
       }
     end
 
+    #: (_ToA[untyped] names) -> String
     def self.list(names) = names.to_a.join(", ")
+    #: (Symbol scope) -> String
     def self.sigil(scope) = scope == :class ? "." : "#"
   end
 end

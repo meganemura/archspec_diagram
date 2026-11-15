@@ -1,3 +1,5 @@
+# rbs_inline: enabled
+
 require "set"
 
 module ArchspecDiagram
@@ -15,28 +17,38 @@ module ArchspecDiagram
       forbid_constant: { arrow: "-.-x", label: "cannot reference", style: "stroke:#e03131,stroke-width:1.5px,stroke-dasharray:5 4",
                          look: "dashed red arrow to a red hexagon",
                          legend: "the source must not reference the constant" }
-    }.freeze
+    }.freeze #: Hash[Symbol, { arrow: String, label: String?, style: String, look: String, legend: String }]
 
     CLASS_DEFS = {
       empty: "stroke-dasharray:4 3,opacity:0.6",
       undeclared: "stroke-dasharray:2 2,fill:none",
       constant: "fill:none,stroke:#e03131,color:#e03131",
       note: "fill:none,stroke-dasharray:2 2"
-    }.freeze
+    }.freeze #: Hash[Symbol, String]
 
-    Edge = Data.define(:from, :to, :kind, :label)
+    # @rbs!
+    #   type bucket = { components: Array[Architecture::Component], notes: Array[Architecture::Clause] }
+
+    Edge = Data.define(
+      :from, #: Symbol
+      :to, #: Symbol | Architecture::Constant
+      :kind, #: Symbol
+      :label #: String?
+    )
     Constant = Architecture::Constant
     private_constant :Edge, :Constant
 
+    #: (Architecture architecture, Options options) -> void
     def initialize(architecture, options)
       @architecture = architecture
       @options = options
       @component_ids = architecture.components.keys.each_with_index.to_h { |name, index| [name, "c#{index}"] }
       constants = architecture.clauses.flat_map(&:links).map(&:to).grep(Constant).uniq
       @constant_ids = constants.each_with_index.to_h { |constant, index| [constant, "k#{index}"] }
-      @classes = Set.new
+      @classes = Set.new #: Set[Symbol]
     end
 
+    #: () -> String
     def to_s
       @to_s ||= begin
         edges = merged_edges
@@ -51,6 +63,7 @@ module ArchspecDiagram
       end
     end
 
+    #: () -> Array[[String, String]]
     def legend
       present = @architecture.clauses.flat_map(&:links).map(&:kind).uniq
       LINKS.slice(*present).values.map { [_1[:look], _1[:legend]] }
@@ -58,15 +71,22 @@ module ArchspecDiagram
 
     private
 
+    #: () -> Array[String]
     def group_lines
-      buckets = Hash.new { |hash, origin| hash[origin] = { components: [], notes: [] } }
+      buckets = Hash.new do |hash, origin|
+        components = [] #: Array[Architecture::Component]
+        notes = [] #: Array[Architecture::Clause]
+        bucket = { components:, notes: } #: bucket
+        hash[origin] = bucket
+      end #: Hash[Architecture::Origin?, bucket]
       @architecture.components.each_value { buckets[_1.origin][:components] << _1 }
       @architecture.clauses.select(&:project_wide?).each { buckets[_1.origin][:notes] << _1 }
 
       group_index = -1
       buckets.flat_map do |origin, bucket|
         group = "g#{group_index += 1}" if origin
-        notes = @options.detail_at_least?(:rules) ? bucket[:notes].reject(&:drawn_as_links_only?) : []
+        notes = [] #: Array[Architecture::Clause]
+        notes = bucket[:notes].reject(&:drawn_as_links_only?) if @options.detail_at_least?(:rules)
         nodes = bucket[:components].map { |component| node(component) }
         nodes << note_node(group, origin ? "project-wide" : "project rules", notes) unless notes.empty?
         next [] if nodes.empty?
@@ -76,6 +96,7 @@ module ArchspecDiagram
       end
     end
 
+    #: (Architecture::Component component) -> String
     def node(component)
       clauses = @architecture.clauses.select { _1.subject == component.name }
       parts = ["<b>#{text(component.name)}</b>"]
@@ -88,12 +109,14 @@ module ArchspecDiagram
       "#{@component_ids.fetch(component.name)}[\"#{parts.join('<br/>')}\"]#{":::#{klass}" if klass}"
     end
 
+    #: (String? group, String title, Array[Architecture::Clause] clauses) -> String
     def note_node(group, title, clauses)
       @classes << :note
       parts = ["<b>#{title}</b>", *clauses.map { clause_line(_1) }]
       "n_#{group || 'top'}[\"#{parts.join('<br/>')}\"]:::note"
     end
 
+    #: (Architecture::Clause clause) -> String?
     def clause_line(clause)
       return if clause.drawn_as_links_only?
 
@@ -102,6 +125,7 @@ module ArchspecDiagram
       line
     end
 
+    #: () -> Array[Edge]
     def merged_edges
       entries = @architecture.clauses.flat_map do |clause|
         reason = clause.reason if clause.drawn_as_links_only? && @options.detail_at_least?(:reasons)
@@ -117,8 +141,9 @@ module ArchspecDiagram
       end
     end
 
+    #: (Hash[Symbol, Array[[Architecture::Link, String?]]] by_kind) -> Hash[Symbol, [Array[[Architecture::Link, String?]], String?]]
     def fold_consumer_into_allow(by_kind)
-      consumer = by_kind.key?(:allow) && by_kind.delete(:consumer)
+      consumer = by_kind.delete(:consumer) if by_kind.key?(:allow)
       by_kind.to_h do |kind, group|
         group += consumer if consumer && kind == :allow
         base = consumer && kind == :allow ? LINKS.fetch(:consumer)[:label] : LINKS.fetch(kind)[:label]
@@ -126,6 +151,7 @@ module ArchspecDiagram
       end
     end
 
+    #: (Edge edge) -> String
     def edge_line(edge)
       arrow = LINKS.fetch(edge.kind)[:arrow]
       target = edge.to.is_a?(Constant) ? @constant_ids.fetch(edge.to) : @component_ids.fetch(edge.to)
@@ -133,22 +159,25 @@ module ArchspecDiagram
       "  #{@component_ids.fetch(edge.from)} #{arrow}#{label} #{target}"
     end
 
+    #: (Array[Edge] edges) -> Array[String]
     def link_style_lines(edges)
       edges.each_with_index.group_by { |edge, _| LINKS.fetch(edge.kind)[:style] }.map do |style, group|
         "  linkStyle #{group.map(&:last).join(',')} #{style}"
       end
     end
 
+    #: () -> Array[String]
     def class_def_lines = CLASS_DEFS.slice(*@classes).map { |name, style| "  classDef #{name} #{style}" }
 
     # Text inside ["…"] and edge labels: & < > " # ` become #amp; #lt; #gt;
     # #quot; #35; #96;, and line breaks become a space. Backticks matter
     # because a leading one turns the label into a Mermaid markdown string.
+    #: (untyped string) -> String
     def text(string)
       string.to_s.gsub(/\R/, " ").gsub(/[&<>"#`]/) { "##{ESCAPES.fetch(_1)};" }
     end
 
-    ESCAPES = { "&" => "amp", "<" => "lt", ">" => "gt", '"' => "quot", "#" => "35", "`" => "96" }.freeze
+    ESCAPES = { "&" => "amp", "<" => "lt", ">" => "gt", '"' => "quot", "#" => "35", "`" => "96" }.freeze #: Hash[String, String]
     private_constant :ESCAPES
   end
 end

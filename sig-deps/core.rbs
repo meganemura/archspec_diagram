@@ -1,0 +1,13 @@
+# Corrections to the core signatures, for Steep only.
+
+# Data#initialize takes the members as positional or keyword arguments; a
+# subclass that sets defaults calls it through super.
+class Data
+  def initialize: (*untyped, **untyped) -> void
+end
+
+# SystemCallError.new(errno) builds the error with the system's message alone.
+class SystemCallError
+  def self.new: (Integer errno) -> instance
+              | ...
+end

@@ -1,0 +1,23 @@
+# Generated from lib/archspec_diagram/clauses.rb with RBS::Inline
+
+module ArchspecDiagram
+  module Clauses
+    Link: untyped
+
+    Constant: untyped
+
+    DECODERS: Hash[Class, ^(untyped) -> Hash[Symbol, untyped]]
+
+    # : (untyped rule, origin: Architecture::Origin?) -> Architecture::Clause
+    def self.decode: (untyped rule, origin: Architecture::Origin?) -> Architecture::Clause
+
+    # : (untyped rule) -> Hash[Symbol, untyped]
+    def self.custom: (untyped rule) -> Hash[Symbol, untyped]
+
+    # : (_ToA[untyped] names) -> String
+    def self.list: (_ToA[untyped] names) -> String
+
+    # : (Symbol scope) -> String
+    def self.sigil: (Symbol scope) -> String
+  end
+end
